@@ -46,4 +46,12 @@ dependencies {
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutines_version"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version"
+
+    /* ReyclerView */
+    def recyclerview_version = "1.0.0"
+    implementation "androidx.recyclerview:recyclerview:$recyclerview_version"
+
+    /* CardView */
+    def cardview_version = "1.0.0"
+    implementation "androidx.cardview:cardview:$cardview_version"
 }

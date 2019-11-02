@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.MainActivity">
+    tools:context=".ui.MainActivity"
+    android:id="@+id/mainContainer">
 
     <ImageView
         android:id="@+id/ivPreview"
@@ -13,22 +14,13 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/btnDo"/>
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
     <com.liberaid.ezcurves.ui.custom.CurveView
+        android:visibility="gone"
         android:id="@+id/curveView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="8dp"/>
-
-    <Button
-        android:id="@+id/btnDo"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:text="Do"
-        style="@android:style/Widget.Material.Button.Borderless.Colored"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -9,6 +9,8 @@ import android.renderscript.Element
 import android.renderscript.RenderScript
 import com.liberaid.ezcurves.ui.custom.CurveView
 import com.liberaid.ezcurves.R
+import com.liberaid.ezcurves.ui.fragments.ImportFragment
+import com.liberaid.ezcurves.util.safeTransaction
 import com.liberaid.ezcurves.util.withUI
 import com.liberaid.renderscripttest.ScriptC_curve
 import kotlinx.android.synthetic.main.activity_main.*
@@ -35,6 +37,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val importFragment = ImportFragment()
+
+        supportFragmentManager.safeTransaction {
+            replace(R.id.mainContainer, importFragment, importFragment.fragmentTag)
+        }
+    }
+
+    private fun setup() {
         bitmap = try {
             BitmapFactory.decodeStream(assets.open("me_and_wall.jpg"))
         } catch (e: Exception) {
