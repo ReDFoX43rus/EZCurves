@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="CurveView">
+        <attr name="gridLines" format="integer"/>
+        <attr name="gridColor" format="color"/>
+        <attr name="gridWidth" format="dimension"/>
+        <attr name="borderColor" format="color"/>
+        <attr name="borderWidth" format="dimension"/>
+        <attr name="bgColor" format="color"/>
+        <attr name="circleRadius" format="dimension"/>
+        <attr name="circleRadiusDivider" format="integer"/>
+        <attr name="circleColor" format="color"/>
+        <attr name="curveColor" format="color"/>
+        <attr name="curveWidth" format="dimension"/>
+    </declare-styleable>
+</resources>

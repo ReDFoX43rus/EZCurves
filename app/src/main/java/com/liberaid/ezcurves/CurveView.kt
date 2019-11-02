@@ -6,24 +6,38 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import timber.log.Timber
+import kotlin.math.max
 import kotlin.math.min
 
 class CurveView(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
-    private var gridLines = 7
-
     private val drawRect = RectF()
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-
-    private var borderColor = Color.DKGRAY
-    private var borderWidth = 3f
-    private var gridColor = Color.GRAY
-    private var gridWidth = 1f
 
     private var canvasPath = Path()
 
     private val curveInterpolator = CurveInterpolator()
     private val circles = Array(3) { CurveInterpolator.CircleInfo() }
+
+    init {
+        context.theme.obtainStyledAttributes(attrs, R.styleable.CurveView, 0, 0).apply {
+            try {
+                gridLines = getInteger(R.styleable.CurveView_gridLines, 7)
+                gridColor = getColor(R.styleable.CurveView_gridColor, DEFAULT_GRID_COLOR)
+                gridWidth = getDimension(R.styleable.CurveView_gridWidth, 1f)
+                borderColor = getColor(R.styleable.CurveView_borderColor, DEFAULT_BORDER_COLOR)
+                borderWidth = getDimension(R.styleable.CurveView_borderWidth, 3f)
+                bgColor = getColor(R.styleable.CurveView_bgColor, DEFAULT_BG_COLOR)
+                circleRadius = getDimension(R.styleable.CurveView_circleRadius, 3f)
+                circleRadiusDivider = getInteger(R.styleable.CurveView_circleRadiusDivider, 2)
+                circleColor = getColor(R.styleable.CurveView_circleColor, DEFAULT_CIRCLE_COLOR)
+                curveColor = getColor(R.styleable.CurveView_curveColor, DEFAULT_CURVE_COLOR)
+                curveWidth = getDimension(R.styleable.CurveView_curveWidth, 1f)
+            } finally {
+                recycle()
+            }
+        }
+    }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val mw = MeasureSpec.getSize(widthMeasureSpec)
@@ -80,15 +94,20 @@ class CurveView(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
         /* Draw curve */
         paint.apply {
-            color = Color.RED
+            color = curveColor
         }
 
         /* Draw path */
         curveInterpolator.fillCanvasPath(canvasPath)
         canvas.drawPath(canvasPath, paint)
 
+        paint.apply {
+            color = circleColor
+            style = Paint.Style.FILL
+        }
+
         /* Draw circles */
-        curveInterpolator.fillCircleArray(circles, 2f)
+        curveInterpolator.fillCircleArray(circles, circleRadiusDivider.toFloat())
         circles.forEach { (x, y, radius) ->
             canvas.drawCircle(x, y, radius, paint)
         }
@@ -111,4 +130,84 @@ class CurveView(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
         return true
     }
+
+    companion object {
+        private const val DEFAULT_GRID_COLOR = Color.GRAY
+        private const val DEFAULT_BORDER_COLOR = Color.DKGRAY
+        private const val DEFAULT_BG_COLOR = Color.TRANSPARENT
+        private const val DEFAULT_CIRCLE_COLOR = Color.RED
+        private const val DEFAULT_CURVE_COLOR = Color.RED
+    }
+
+    var gridLines = 7
+    set(value) {
+        field = value
+        invalidate()
+    }
+
+    var gridColor = 0
+    set(value) {
+        field = value
+        invalidate()
+    }
+
+    var gridWidth = 0f
+    set(value) {
+        field = max(value, 0f) * resources.displayMetrics.density
+        invalidate()
+    }
+    get() = field / resources.displayMetrics.density
+
+    var borderColor = 0
+    set(value) {
+        field = value
+        invalidate()
+    }
+
+    var borderWidth = 0f
+    set(value) {
+        field = max(value, 0f) * resources.displayMetrics.density
+        invalidate()
+    }
+    get() = field / resources.displayMetrics.density
+
+    var bgColor = 0
+    set(value) {
+        field = value
+        invalidate()
+    }
+
+    var circleRadius = 0f
+    set(value) {
+        field = max(value, 0f) * resources.displayMetrics.density
+        invalidate()
+    }
+    get() = field / resources.displayMetrics.density
+
+    var circleRadiusDivider = 2
+    set(value){
+        if(value > 0) {
+            field = value
+            invalidate()
+        }
+    }
+
+    var circleColor = 0
+    set(value){
+        field = value
+        invalidate()
+    }
+
+    var curveColor = 0
+    set(value) {
+        field = value
+        invalidate()
+    }
+
+    var curveWidth = 0f
+    set(value) {
+        field = max(value, 0f) * resources.displayMetrics.density
+        invalidate()
+    }
+    get() = field / resources.displayMetrics.density
 }
