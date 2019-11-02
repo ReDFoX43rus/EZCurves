@@ -1,10 +1,9 @@
 package com.liberaid.ezcurves
 
 import android.graphics.Path
-import androidx.annotation.FloatRange
 import timber.log.Timber
 
-class CurveInterpolator {
+class CurveHandler(private val curveInterpolator: ICurveInterpolator) {
 
     private var isGrabbed = false
     private var grabbedPointIndex = 0
@@ -131,7 +130,7 @@ class CurveInterpolator {
     }
 
     fun fillCanvasPath(path: Path) {
-        val polynomial = getInterpolationPolynomial()
+        val interpolation = getInterpolation()
 
         /* Interpolate path */
         path.reset()
@@ -143,7 +142,7 @@ class CurveInterpolator {
 
         for(i in 1 until steps){
             var x = oLeft + i * step
-            var y = oBottom - polynomial(x)
+            var y = oBottom - interpolation(x)
 
             if(x < oLeft)
                 x = oLeft
@@ -158,44 +157,10 @@ class CurveInterpolator {
             path.lineTo(x, y)
         }
     }
-    
-    fun getInterpolationPolynomial(): (Float) -> Float {
+
+    fun getInterpolation(): (Float) -> Float {
         assertOriginCoordinates()
-
-        /* Lagrange polynomial construction */
-        val basisPolynomials = Array<(Float) -> Float>(points.size) {
-
-            val xi = points[it].x * canvasSize + oLeft
-
-            val result: (Float) -> Float = { x ->
-
-                var result = 1f
-
-                for(i in points.indices){
-                    if(i == it)
-                        continue
-
-                    val xj = points[i].x * canvasSize + oLeft
-
-                    result *= (x - xj) / (xi - xj)
-                }
-
-                result
-            }
-
-            result
-        }
-
-        val polynomial: (Float) -> Float = { x ->
-            var result = 0f
-
-            for(i in points.indices)
-                result += points[i].y * canvasSize * basisPolynomials[i](x)
-
-            result
-        }
-        
-        return polynomial
+        return curveInterpolator.getInterpolation(points, oLeft, canvasSize)
     }
 
     private fun assertOriginCoordinates() {
@@ -209,7 +174,7 @@ class CurveInterpolator {
         operator fun component3() = radius
     }
 
-    private class DraggablePoint(var x: Float, var y: Float) {
+    class DraggablePoint(var x: Float, var y: Float) {
         override fun toString() = "x=$x, y=$y"
 
         operator fun component1() = x

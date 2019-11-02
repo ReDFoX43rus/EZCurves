@@ -18,8 +18,8 @@ class CurveView(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
     private var canvasPath = Path()
 
-    private val curveInterpolator = CurveInterpolator()
-    private val circles = Array(3) { CurveInterpolator.CircleInfo() }
+    private val curveInterpolator = CurveHandler(MixedCurveInterpolator.getPolyLinearInterpolator(0.25f))
+    private val circles = Array(CurveHandler.INIT_POINTS_N - 2) { CurveHandler.CircleInfo() }
 
     init {
         context.theme.obtainStyledAttributes(attrs, R.styleable.CurveView, 0, 0).apply {
@@ -45,7 +45,7 @@ class CurveView(context: Context, attrs: AttributeSet) : View(context, attrs) {
         if(curve.size < 256)
             return
 
-        val polynomial = curveInterpolator.getInterpolationPolynomial()
+        val polynomial = curveInterpolator.getInterpolation()
 
         val step = drawRect.width() / 256
         for(i in 0 until 256){
