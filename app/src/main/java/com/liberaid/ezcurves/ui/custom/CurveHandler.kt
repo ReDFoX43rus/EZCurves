@@ -1,4 +1,4 @@
-package com.liberaid.ezcurves
+package com.liberaid.ezcurves.ui.custom
 
 import android.graphics.Path
 import timber.log.Timber

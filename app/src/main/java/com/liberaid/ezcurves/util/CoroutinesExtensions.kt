@@ -1,4 +1,4 @@
-package com.liberaid.ezcurves
+package com.liberaid.ezcurves.util
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

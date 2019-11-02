@@ -1,8 +1,9 @@
-package com.liberaid.ezcurves
+package com.liberaid.ezcurves.ui.custom
 
 class MixedCurveInterpolator(private val firstInterpolator: ICurveInterpolator,
                              private val secondInterpolator: ICurveInterpolator,
-                             private val sigma: Float = 0.5f) : ICurveInterpolator {
+                             private val sigma: Float = 0.5f) :
+    ICurveInterpolator {
 
     override fun getInterpolation(
         points: Array<CurveHandler.DraggablePoint>,
@@ -18,6 +19,11 @@ class MixedCurveInterpolator(private val firstInterpolator: ICurveInterpolator,
     }
 
     companion object {
-        fun getPolyLinearInterpolator(sigma: Float) = MixedCurveInterpolator(PolynomialCurveInterpolator(), LinearCurveInterpolator(), sigma)
+        fun getPolyLinearInterpolator(sigma: Float) =
+            MixedCurveInterpolator(
+                PolynomialCurveInterpolator(),
+                LinearCurveInterpolator(),
+                sigma
+            )
     }
 }

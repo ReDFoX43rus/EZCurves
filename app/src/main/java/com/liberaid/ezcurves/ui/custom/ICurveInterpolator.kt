@@ -1,4 +1,4 @@
-package com.liberaid.ezcurves
+package com.liberaid.ezcurves.ui.custom
 
 interface ICurveInterpolator {
 

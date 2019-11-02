@@ -1,10 +1,11 @@
-package com.liberaid.ezcurves
+package com.liberaid.ezcurves.ui.custom
 
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
+import com.liberaid.ezcurves.R
 import timber.log.Timber
 import kotlin.math.max
 import kotlin.math.min
@@ -18,22 +19,42 @@ class CurveView(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
     private var canvasPath = Path()
 
-    private val curveInterpolator = CurveHandler(MixedCurveInterpolator.getPolyLinearInterpolator(0.25f))
+    private val curveInterpolator = CurveHandler(
+        MixedCurveInterpolator.getPolyLinearInterpolator(
+            0.25f
+        )
+    )
     private val circles = Array(CurveHandler.INIT_POINTS_N - 2) { CurveHandler.CircleInfo() }
 
     init {
-        context.theme.obtainStyledAttributes(attrs, R.styleable.CurveView, 0, 0).apply {
+        context.theme.obtainStyledAttributes(attrs,
+            R.styleable.CurveView, 0, 0).apply {
             try {
                 gridLines = getInteger(R.styleable.CurveView_gridLines, 7)
-                gridColor = getColor(R.styleable.CurveView_gridColor, DEFAULT_GRID_COLOR)
+                gridColor = getColor(
+                    R.styleable.CurveView_gridColor,
+                    DEFAULT_GRID_COLOR
+                )
                 gridWidth = getDimension(R.styleable.CurveView_gridWidth, 1f)
-                borderColor = getColor(R.styleable.CurveView_borderColor, DEFAULT_BORDER_COLOR)
+                borderColor = getColor(
+                    R.styleable.CurveView_borderColor,
+                    DEFAULT_BORDER_COLOR
+                )
                 borderWidth = getDimension(R.styleable.CurveView_borderWidth, 3f)
-                bgColor = getColor(R.styleable.CurveView_bgColor, DEFAULT_BG_COLOR)
+                bgColor = getColor(
+                    R.styleable.CurveView_bgColor,
+                    DEFAULT_BG_COLOR
+                )
                 circleRadius = getDimension(R.styleable.CurveView_circleRadius, 3f)
                 circleRadiusDivider = getInteger(R.styleable.CurveView_circleRadiusDivider, 2)
-                circleColor = getColor(R.styleable.CurveView_circleColor, DEFAULT_CIRCLE_COLOR)
-                curveColor = getColor(R.styleable.CurveView_curveColor, DEFAULT_CURVE_COLOR)
+                circleColor = getColor(
+                    R.styleable.CurveView_circleColor,
+                    DEFAULT_CIRCLE_COLOR
+                )
+                curveColor = getColor(
+                    R.styleable.CurveView_curveColor,
+                    DEFAULT_CURVE_COLOR
+                )
                 curveWidth = getDimension(R.styleable.CurveView_curveWidth, 1f)
             } finally {
                 recycle()

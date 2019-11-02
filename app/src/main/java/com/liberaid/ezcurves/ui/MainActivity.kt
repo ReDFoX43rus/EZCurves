@@ -1,4 +1,4 @@
-package com.liberaid.ezcurves
+package com.liberaid.ezcurves.ui
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -7,12 +7,13 @@ import android.os.Bundle
 import android.renderscript.Allocation
 import android.renderscript.Element
 import android.renderscript.RenderScript
-import android.renderscript.ScriptC
+import com.liberaid.ezcurves.ui.custom.CurveView
+import com.liberaid.ezcurves.R
+import com.liberaid.ezcurves.util.withUI
 import com.liberaid.renderscripttest.ScriptC_curve
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.consumeEach
 import timber.log.Timber
 import java.lang.Exception
 
@@ -55,7 +56,8 @@ class MainActivity : AppCompatActivity() {
             bind_mapping_b(redCurveAlloc)
         }
 
-        curveView.curveChangedListener = object : CurveView.ICurveChangedListener {
+        curveView.curveChangedListener = object :
+            CurveView.ICurveChangedListener {
             override fun onCurveChanged() {
                 runBlocking {
                     notifyChannel.send(Unit)
