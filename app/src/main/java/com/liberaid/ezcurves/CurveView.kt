@@ -23,7 +23,7 @@ class CurveView(context: Context, attrs: AttributeSet) : View(context, attrs) {
     private var canvasPath = Path()
 
     private val curveInterpolator = CurveInterpolator()
-    private val circles = Array<Triple<Float, Float, Float>>(3) { Triple(0f, 0f, 0f) }
+    private val circles = Array(3) { CurveInterpolator.CircleInfo() }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val mw = MeasureSpec.getSize(widthMeasureSpec)
@@ -38,6 +38,12 @@ class CurveView(context: Context, attrs: AttributeSet) : View(context, attrs) {
         } else (mw / 2f - side / 2) to 0f
 
         drawRect.set(x + paddingStart, y + paddingTop, x + side - paddingEnd, y + side - paddingBottom)
+
+        curveInterpolator.apply {
+            oBottom = drawRect.bottom
+            oLeft = drawRect.left
+            canvasSize = drawRect.width()
+        }
 
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
@@ -78,11 +84,11 @@ class CurveView(context: Context, attrs: AttributeSet) : View(context, attrs) {
         }
 
         /* Draw path */
-        curveInterpolator.fillCanvasPath(canvasPath, drawRect.bottom, drawRect.left, drawRect.width())
+        curveInterpolator.fillCanvasPath(canvasPath)
         canvas.drawPath(canvasPath, paint)
 
         /* Draw circles */
-        curveInterpolator.fillCircleArray(circles, drawRect.bottom, drawRect.left, drawRect.width())
+        curveInterpolator.fillCircleArray(circles, 2f)
         circles.forEach { (x, y, radius) ->
             canvas.drawCircle(x, y, radius, paint)
         }
@@ -97,10 +103,10 @@ class CurveView(context: Context, attrs: AttributeSet) : View(context, attrs) {
         when(event.action) {
             MotionEvent.ACTION_UP -> { curveInterpolator.releasePoint() }
             MotionEvent.ACTION_MOVE -> {
-                if(curveInterpolator.movePoint(event.x, event.y, drawRect.bottom, drawRect.left, drawRect.width()))
+                if(curveInterpolator.movePoint(event.x, event.y))
                     invalidate()
             }
-            MotionEvent.ACTION_DOWN -> { curveInterpolator.grabPoint(event.x, event.y, drawRect.bottom, drawRect.left, drawRect.width()) }
+            MotionEvent.ACTION_DOWN -> { curveInterpolator.grabPoint(event.x, event.y) }
         }
 
         return true
