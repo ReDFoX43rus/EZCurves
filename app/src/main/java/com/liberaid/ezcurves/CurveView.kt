@@ -11,6 +11,8 @@ import kotlin.math.min
 
 class CurveView(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
+    var curveChangedListener: ICurveChangedListener? = null
+
     private val drawRect = RectF()
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
 
@@ -36,6 +38,26 @@ class CurveView(context: Context, attrs: AttributeSet) : View(context, attrs) {
             } finally {
                 recycle()
             }
+        }
+    }
+
+    fun fillCurve(curve: ByteArray) {
+        if(curve.size < 256)
+            return
+
+        val polynomial = curveInterpolator.getInterpolationPolynomial()
+
+        val step = drawRect.width() / 256
+        for(i in 0 until 256){
+            val x = drawRect.left + i * step
+            var y = polynomial(x) / drawRect.width() * 255
+
+            if(y < 0f)
+                y = 0f
+            else if (y > 255f)
+                y = 255f
+
+            curve[i] = y.toByte()
         }
     }
 
@@ -122,13 +144,19 @@ class CurveView(context: Context, attrs: AttributeSet) : View(context, attrs) {
         when(event.action) {
             MotionEvent.ACTION_UP -> { curveInterpolator.releasePoint() }
             MotionEvent.ACTION_MOVE -> {
-                if(curveInterpolator.movePoint(event.x, event.y))
+                if(curveInterpolator.movePoint(event.x, event.y)) {
                     invalidate()
+                    curveChangedListener?.onCurveChanged()
+                }
             }
             MotionEvent.ACTION_DOWN -> { curveInterpolator.grabPoint(event.x, event.y) }
         }
 
         return true
+    }
+
+    interface ICurveChangedListener {
+        fun onCurveChanged()
     }
 
     companion object {
