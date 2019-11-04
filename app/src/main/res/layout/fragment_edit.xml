@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <ImageView
+        android:id="@+id/ivPreview"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:src="@color/colorPrimary"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <com.liberaid.ezcurves.ui.custom.CurveView
+        android:id="@+id/curveView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/ivPreview"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/btnGeneralCurve"/>
+
+    <ImageButton
+        android:id="@+id/btnGeneralCurve"
+        android:layout_width="@dimen/edit_button_size"
+        android:layout_height="@dimen/edit_button_size"
+        android:src="@mipmap/ic_launcher"
+        android:layout_marginStart="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnRedCurve"/>
+
+    <ImageButton
+        android:id="@+id/btnRedCurve"
+        android:layout_width="@dimen/edit_button_size"
+        android:layout_height="@dimen/edit_button_size"
+        android:src="@mipmap/ic_launcher"
+        app:layout_constraintBottom_toBottomOf="@id/btnGeneralCurve"
+        app:layout_constraintStart_toEndOf="@id/btnGeneralCurve"
+        app:layout_constraintEnd_toStartOf="@id/btnGreenCurve"/>
+
+    <ImageButton
+        android:id="@+id/btnGreenCurve"
+        android:layout_width="@dimen/edit_button_size"
+        android:layout_height="@dimen/edit_button_size"
+        android:src="@mipmap/ic_launcher"
+        app:layout_constraintBottom_toBottomOf="@id/btnGeneralCurve"
+        app:layout_constraintStart_toEndOf="@id/btnRedCurve"
+        app:layout_constraintEnd_toStartOf="@id/btnBlueCurve"/>
+
+
+    <ImageButton
+        android:id="@+id/btnBlueCurve"
+        android:layout_width="@dimen/edit_button_size"
+        android:layout_height="@dimen/edit_button_size"
+        android:src="@mipmap/ic_launcher"
+        app:layout_constraintBottom_toBottomOf="@id/btnGeneralCurve"
+        app:layout_constraintStart_toEndOf="@id/btnGreenCurve"
+        app:layout_constraintEnd_toStartOf="@id/btnGammaCorrection"/>
+
+    <ImageButton
+        android:id="@+id/btnGammaCorrection"
+        android:layout_width="@dimen/edit_button_size"
+        android:layout_height="@dimen/edit_button_size"
+        android:src="@mipmap/ic_launcher"
+        app:layout_constraintBottom_toBottomOf="@id/btnGeneralCurve"
+        app:layout_constraintStart_toEndOf="@id/btnBlueCurve"
+        app:layout_constraintEnd_toStartOf="@id/btnExport"/>
+
+    <Button
+        android:id="@+id/btnExport"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/edit_button_size"
+        app:layout_constraintBottom_toBottomOf="@id/btnGeneralCurve"
+        app:layout_constraintStart_toEndOf="@id/btnGammaCorrection"
+        app:layout_constraintEnd_toEndOf="parent"
+        style="@android:style/Widget.Material.Button.Borderless.Colored"
+        android:text="Export"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

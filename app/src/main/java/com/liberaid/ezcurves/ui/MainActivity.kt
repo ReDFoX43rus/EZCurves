@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity() {
 
         val importFragment = FragmentsComponent
             .instance(supportFragmentManager)
-            .getSelectFragment()
+            .getEditFragment()
 
         supportFragmentManager.safeTransaction {
             replace(R.id.mainContainer, importFragment, importFragment.fragmentTag)

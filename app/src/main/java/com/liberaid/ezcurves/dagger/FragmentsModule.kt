@@ -4,6 +4,7 @@ import androidx.fragment.app.FragmentManager
 import com.liberaid.ezcurves.ui.BaseFragment
 import com.liberaid.ezcurves.ui.FragmentId
 import com.liberaid.ezcurves.ui.fragments.ImportFragment
+import com.liberaid.ezcurves.ui.fragments.editfragment.EditFragment
 import com.liberaid.ezcurves.ui.fragments.selectfragment.SelectFragment
 import dagger.Module
 import dagger.Provides
@@ -16,6 +17,9 @@ class FragmentsModule(private val fragmentManager: FragmentManager) {
 
     @Provides
     fun provideSelectFragment(): SelectFragment = fragmentManager.provideFragment(FragmentId.SELECT_FRAGMENT)
+
+    @Provides
+    fun provideEditFragment(): EditFragment = fragmentManager.provideFragment(FragmentId.EDIT_FRAGMENT)
 
 }
 
