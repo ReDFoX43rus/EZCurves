@@ -9,7 +9,7 @@ import android.renderscript.Element
 import android.renderscript.RenderScript
 import com.liberaid.ezcurves.ui.custom.CurveView
 import com.liberaid.ezcurves.R
-import com.liberaid.ezcurves.ui.fragments.ImportFragment
+import com.liberaid.ezcurves.dagger.FragmentsComponent
 import com.liberaid.ezcurves.util.safeTransaction
 import com.liberaid.ezcurves.util.withUI
 import com.liberaid.renderscripttest.ScriptC_curve
@@ -37,7 +37,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val importFragment = ImportFragment()
+        val importFragment = FragmentsComponent
+            .instance(supportFragmentManager)
+            .getSelectFragment()
 
         supportFragmentManager.safeTransaction {
             replace(R.id.mainContainer, importFragment, importFragment.fragmentTag)
