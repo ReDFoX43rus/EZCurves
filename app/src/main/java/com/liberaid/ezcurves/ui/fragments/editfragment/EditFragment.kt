@@ -74,6 +74,8 @@ class EditFragment : BaseFragment(), View.OnClickListener {
         handlerJob?.cancel()
         handlerJob = setupByFuture(imageFuture)
 
+        setState(ColorState.GENERAL)
+
         btnGeneralCurve.setOnClickListener(this)
         btnRedCurve.setOnClickListener(this)
         btnGreenCurve.setOnClickListener(this)
@@ -150,6 +152,8 @@ class EditFragment : BaseFragment(), View.OnClickListener {
     }
 
     override fun onClick(v: View?) {
+        Timber.d("OnClick")
+
         v ?: return
 
         when(v.id) {

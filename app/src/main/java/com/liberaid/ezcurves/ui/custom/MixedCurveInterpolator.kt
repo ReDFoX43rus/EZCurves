@@ -5,17 +5,16 @@ class MixedCurveInterpolator(private val firstInterpolator: ICurveInterpolator,
                              private val sigma: Float = 0.5f) :
     ICurveInterpolator {
 
-    override fun getInterpolation(
+    override fun getY(
+        x: Float,
         points: Array<CurveHandler.DraggablePoint>,
         originLeft: Float,
         canvasSize: Float
-    ): (Float) -> Float {
-        val interpolator1 = firstInterpolator.getInterpolation(points, originLeft, canvasSize)
-        val interpolator2 = secondInterpolator.getInterpolation(points, originLeft, canvasSize)
+    ): Float {
+        val y1 = firstInterpolator.getY(x, points, originLeft, canvasSize)
+        val y2 = secondInterpolator.getY(x, points, originLeft, canvasSize)
 
-        return { x ->
-            interpolator1(x) * sigma + interpolator2(x) * (1 - sigma)
-        }
+        return y1 * sigma + y2 * (1 - sigma)
     }
 
     companion object {
@@ -25,5 +24,29 @@ class MixedCurveInterpolator(private val firstInterpolator: ICurveInterpolator,
                 LinearCurveInterpolator(),
                 sigma
             )
+
+        fun getThreePointsPolyLinearInterpolator(sigma: Float) = ThreePointsCurveInterpolator(getPolyLinearInterpolator(sigma))
+
+        fun testInterpolator(): ICurveInterpolator {
+            val polynomialInterpolator = PolynomialCurveInterpolator()
+            val linearInterpolator = LinearCurveInterpolator()
+            val quadraticInterpolator = ThreePointsCurveInterpolator(polynomialInterpolator)
+
+            val mixed1 = MixedCurveInterpolator(polynomialInterpolator, linearInterpolator, 0.25f)
+            val mixed2 = MixedCurveInterpolator(mixed1, quadraticInterpolator, 0.8f)
+
+            return mixed2
+        }
+
+        fun testInterpolator2(): ICurveInterpolator {
+            val polynomialInterpolator = PolynomialCurveInterpolator()
+            val linearInterpolator = LinearCurveInterpolator()
+            val quadraticInterpolator = ThreePointsCurveInterpolator(polynomialInterpolator)
+
+            val mixed1 = MixedCurveInterpolator(quadraticInterpolator, linearInterpolator, 0.25f)
+            val mixed2 = MixedCurveInterpolator(mixed1, polynomialInterpolator, 0.9f)
+
+            return mixed2
+        }
     }
 }

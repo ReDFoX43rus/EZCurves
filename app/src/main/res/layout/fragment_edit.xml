@@ -62,7 +62,7 @@
         android:layout_width="@dimen/edit_button_size"
         android:layout_height="@dimen/edit_button_size"
         android:src="@mipmap/ic_launcher"
-        app:layout_constraintTop_toTopOf="@id/btnBlueCurve"
+        app:layout_constraintTop_toBottomOf="@id/btnBlueCurve"
         app:layout_constraintEnd_toEndOf="parent"/>
 
     <Button

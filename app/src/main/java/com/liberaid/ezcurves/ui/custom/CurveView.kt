@@ -5,6 +5,7 @@ import android.graphics.*
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
+import android.view.animation.LinearInterpolator
 import com.liberaid.ezcurves.R
 import timber.log.Timber
 import kotlin.math.max
@@ -19,11 +20,7 @@ class CurveView(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
     private var canvasPath = Path()
 
-    private val curveInterpolator = CurveHandler(
-        MixedCurveInterpolator.getPolyLinearInterpolator(
-            0.25f
-        )
-    )
+    private val curveInterpolator = CurveHandler(MixedCurveInterpolator.testInterpolator2())
     private val circles = Array(CurveHandler.INIT_POINTS_N - 2) { CurveHandler.CircleInfo() }
 
     init {
@@ -66,12 +63,10 @@ class CurveView(context: Context, attrs: AttributeSet) : View(context, attrs) {
         if(curve.size < 256)
             return
 
-        val polynomial = curveInterpolator.getInterpolation()
-
         val step = drawRect.width() / 256
         for(i in 0 until 256){
             val x = drawRect.left + i * step
-            var y = polynomial(x) / drawRect.width() * 255
+            var y = curveInterpolator.getY(x) / drawRect.width() * 255
 
             if(y < 0f)
                 y = 0f

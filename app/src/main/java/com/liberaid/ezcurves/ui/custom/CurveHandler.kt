@@ -91,7 +91,6 @@ class CurveHandler(private val curveInterpolator: ICurveInterpolator) {
         val y = (oBottom - toY) / canvasSize
 
         if(x !in grabXRange) {
-            Timber.d("X is not in range $x, range=$grabXRange")
             return false
         }
 
@@ -130,8 +129,6 @@ class CurveHandler(private val curveInterpolator: ICurveInterpolator) {
     }
 
     fun fillCanvasPath(path: Path) {
-        val interpolation = getInterpolation()
-
         /* Interpolate path */
         path.reset()
 
@@ -142,7 +139,7 @@ class CurveHandler(private val curveInterpolator: ICurveInterpolator) {
 
         for(i in 1 until steps){
             var x = oLeft + i * step
-            var y = oBottom - interpolation(x)
+            var y = oBottom - getY(x)
 
             if(x < oLeft)
                 x = oLeft
@@ -158,9 +155,9 @@ class CurveHandler(private val curveInterpolator: ICurveInterpolator) {
         }
     }
 
-    fun getInterpolation(): (Float) -> Float {
+    fun getY(x: Float): Float {
         assertOriginCoordinates()
-        return curveInterpolator.getInterpolation(points, oLeft, canvasSize)
+        return curveInterpolator.getY(x, points, oLeft, canvasSize)
     }
 
     private fun assertOriginCoordinates() {
