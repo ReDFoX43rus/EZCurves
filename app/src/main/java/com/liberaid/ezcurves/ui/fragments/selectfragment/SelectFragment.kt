@@ -7,9 +7,11 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import androidx.core.content.ContextCompat
+import androidx.core.os.bundleOf
 import androidx.loader.app.LoaderManager
 import androidx.loader.content.CursorLoader
 import androidx.loader.content.Loader
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.liberaid.ezcurves.R
 import com.liberaid.ezcurves.ui.BaseFragment
@@ -55,6 +57,10 @@ class SelectFragment : BaseFragment(), ISelectFragmentContract.IView, LoaderMana
     }
 
     override fun notifyRVAdapter() = rvAdapter.notifyDataSetChanged()
+
+    override fun navigateToEditFragment(imagePath: String) {
+        findNavController().navigate(R.id.action_selectFragment_to_editFragment, bundleOf(IMAGE_PATH_KEY to imagePath))
+    }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -102,5 +108,7 @@ class SelectFragment : BaseFragment(), ISelectFragmentContract.IView, LoaderMana
 
     companion object {
         private const val REQUEST_READ = 1
+
+        const val IMAGE_PATH_KEY = "imagePath"
     }
 }

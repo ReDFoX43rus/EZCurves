@@ -29,7 +29,7 @@
         android:layout_width="@dimen/edit_button_size"
         android:layout_height="@dimen/edit_button_size"
         android:src="@mipmap/ic_launcher"
-        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
         app:layout_constraintTop_toBottomOf="@id/ivPreview"
         app:layout_constraintEnd_toEndOf="parent"/>
 

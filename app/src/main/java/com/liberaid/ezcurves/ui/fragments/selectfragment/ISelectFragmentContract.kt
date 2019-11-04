@@ -8,6 +8,7 @@ interface ISelectFragmentContract {
     interface IView : IMVPView {
         fun notifyRVAdapter()
         fun initPhotosLoader()
+        fun navigateToEditFragment(imagePath: String)
 
         interface IViewListener {
             fun onPhotosLoaded(paths: List<String>)

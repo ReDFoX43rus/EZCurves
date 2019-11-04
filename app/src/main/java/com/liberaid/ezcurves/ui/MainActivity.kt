@@ -9,8 +9,6 @@ import android.renderscript.Element
 import android.renderscript.RenderScript
 import com.liberaid.ezcurves.ui.custom.CurveView
 import com.liberaid.ezcurves.R
-import com.liberaid.ezcurves.dagger.FragmentsComponent
-import com.liberaid.ezcurves.util.safeTransaction
 import com.liberaid.ezcurves.util.withUI
 import com.liberaid.renderscripttest.ScriptC_curve
 import kotlinx.android.synthetic.main.activity_main.*
@@ -36,14 +34,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        val importFragment = FragmentsComponent
-            .instance(supportFragmentManager)
-            .getEditFragment()
-
-        supportFragmentManager.safeTransaction {
-            replace(R.id.mainContainer, importFragment, importFragment.fragmentTag)
-        }
     }
 
     private fun setup() {

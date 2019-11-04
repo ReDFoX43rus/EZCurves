@@ -1,7 +1,6 @@
 package com.liberaid.ezcurves.ui.fragments.selectfragment
 
 import com.liberaid.ezcurves.util.BasePresenter
-import timber.log.Timber
 
 class SelectFragmentPresenter : BasePresenter<ISelectFragmentContract.IView>(), ISelectFragmentContract.IPresenter {
 
@@ -24,8 +23,9 @@ class SelectFragmentPresenter : BasePresenter<ISelectFragmentContract.IView>(), 
     override fun getItemCount() = photoPaths.size
 
     override fun onBindViewOnPosition(view: RVPhotosAdapter.IElementView, position: Int) {
-        view.setupImage(photoPaths[position]) {
-            Timber.d("Image clicked at position $position")
+        val path = photoPaths[position]
+        view.setupImage(path) {
+            this.view?.navigateToEditFragment(path)
         }
     }
 }
