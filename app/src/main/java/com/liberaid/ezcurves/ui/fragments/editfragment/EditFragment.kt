@@ -1,13 +1,17 @@
 package com.liberaid.ezcurves.ui.fragments.editfragment
 
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.os.Bundle
 import android.renderscript.Allocation
 import android.renderscript.Element
 import android.renderscript.RenderScript
+import android.view.View
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.FutureTarget
 import com.liberaid.ezcurves.MyApp
+import com.liberaid.ezcurves.R
 import com.liberaid.ezcurves.ui.BaseFragment
 import com.liberaid.ezcurves.ui.FragmentId
 import com.liberaid.ezcurves.ui.custom.CurveView
@@ -19,7 +23,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import timber.log.Timber
 
-class EditFragment : BaseFragment() {
+class EditFragment : BaseFragment(), View.OnClickListener {
     override val fragmentId = FragmentId.EDIT_FRAGMENT
 
     private var bitmap: Bitmap? = null
@@ -32,9 +36,13 @@ class EditFragment : BaseFragment() {
     private var blueCurveAllocation: Allocation? = null
 
     private val curveBuffer = ByteArray(256)
+    private val identityCurve = ByteArray(256) { it.toByte() }
+
     private val notifyChannel = Channel<Unit>(Channel.CONFLATED)
 
     private var handlerJob: Job? = null
+
+    private var colorState = ColorState.GENERAL
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -65,12 +73,17 @@ class EditFragment : BaseFragment() {
 
         handlerJob?.cancel()
         handlerJob = setupByFuture(imageFuture)
+
+        btnGeneralCurve.setOnClickListener(this)
+        btnRedCurve.setOnClickListener(this)
+        btnGreenCurve.setOnClickListener(this)
+        btnBlueCurve.setOnClickListener(this)
     }
 
     private fun setupByFuture(imageFuture: FutureTarget<Bitmap>) = GlobalScope.launch {
         bitmap = imageFuture.get()
         withUI {
-            ivPreview.setImageBitmap(bitmap)
+            loadBitmapIntoImageView()
         }
 
         inAlloc = Allocation.createFromBitmap(rs, bitmap)
@@ -93,17 +106,40 @@ class EditFragment : BaseFragment() {
         for(notify in notifyChannel){
             curveView.fillCurve(curveBuffer)
 
-            redCurveAllocation?.copy1DRangeFrom(0, 256, curveBuffer)
-            greenCurveAllocation?.copy1DRangeFrom(0, 256, curveBuffer)
-            blueCurveAllocation?.copy1DRangeFrom(0, 256, curveBuffer)
+            redCurveAllocation?.copy1DRangeFrom(0, 256,
+                if(colorState == ColorState.GENERAL || colorState == ColorState.RED)
+                    curveBuffer
+                else identityCurve
+            )
+
+            greenCurveAllocation?.copy1DRangeFrom(0, 256,
+                if(colorState == ColorState.GENERAL || colorState == ColorState.GREEN)
+                    curveBuffer
+                else identityCurve
+            )
+
+            blueCurveAllocation?.copy1DRangeFrom(0, 256,
+                if(colorState == ColorState.GENERAL || colorState == ColorState.BLUE)
+                    curveBuffer
+                else identityCurve
+            )
 
             script?.forEach_apply(inAlloc, outAlloc)
             outAlloc?.copyTo(bitmap)
 
             withUI {
-                ivPreview.setImageBitmap(bitmap)
+                loadBitmapIntoImageView()
             }
         }
+    }
+
+    private fun loadBitmapIntoImageView() {
+        ivPreview.setImageBitmap(bitmap)
+        /*Glide.with(this)
+            .load(bitmap)
+            .diskCacheStrategy(DiskCacheStrategy.NONE)
+            .skipMemoryCache(true)
+            .into(ivPreview)*/
     }
 
     override fun onDestroyView() {
@@ -111,5 +147,39 @@ class EditFragment : BaseFragment() {
         handlerJob = null
 
         super.onDestroyView()
+    }
+
+    override fun onClick(v: View?) {
+        v ?: return
+
+        when(v.id) {
+            R.id.btnGeneralCurve -> setState(ColorState.GENERAL)
+            R.id.btnRedCurve -> setState(ColorState.RED)
+            R.id.btnGreenCurve -> setState(ColorState.GREEN)
+            R.id.btnBlueCurve -> setState(ColorState.BLUE)
+        }
+    }
+
+    private fun setState(state: ColorState) {
+        colorState = state
+
+        val color = when(state){
+            ColorState.GENERAL -> Color.BLACK
+            ColorState.RED -> Color.RED
+            ColorState.GREEN -> Color.GREEN
+            ColorState.BLUE -> Color.BLUE
+        }
+
+        curveView.curveColor = color
+        curveView.circleColor = color
+
+        Timber.d("New state: $state")
+    }
+
+    private enum class ColorState {
+        GENERAL,
+        RED,
+        GREEN,
+        BLUE,
     }
 }
