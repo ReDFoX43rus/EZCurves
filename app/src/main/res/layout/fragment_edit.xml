@@ -8,7 +8,6 @@
         android:id="@+id/ivPreview"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:src="@color/colorPrimary"
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
