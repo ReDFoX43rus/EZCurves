@@ -1,12 +1,12 @@
 package com.liberaid.ezcurves.ui.fragments.editfragment
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Bundle
-import android.renderscript.Allocation
-import android.renderscript.Element
-import android.renderscript.RenderScript
+import android.renderscript.*
 import android.view.View
+import android.widget.Toast
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.FutureTarget
@@ -17,6 +17,7 @@ import com.liberaid.ezcurves.ui.FragmentId
 import com.liberaid.ezcurves.ui.custom.CurveView
 import com.liberaid.ezcurves.ui.fragments.selectfragment.SelectFragment
 import com.liberaid.ezcurves.util.withUI
+import com.liberaid.renderscripttest.ScriptC_crop
 import com.liberaid.renderscripttest.ScriptC_curve
 import kotlinx.android.synthetic.main.fragment_edit.*
 import kotlinx.coroutines.*
@@ -30,7 +31,7 @@ class EditFragment : BaseFragment(), View.OnClickListener {
     private var rs: RenderScript? = null
     private var inAlloc: Allocation? = null
     private var outAlloc: Allocation? = null
-    private var script: ScriptC_curve? = null
+    private var curveScript: ScriptC_curve? = null
     private var redCurveAllocation: Allocation? = null
     private var greenCurveAllocation: Allocation? = null
     private var blueCurveAllocation: Allocation? = null
@@ -39,7 +40,6 @@ class EditFragment : BaseFragment(), View.OnClickListener {
     private val identityCurve = ByteArray(256) { it.toByte() }
 
     private val notifyChannel = Channel<Unit>(Channel.CONFLATED)
-
     private var handlerJob: Job? = null
 
     private var colorState = ColorState.GENERAL
@@ -58,7 +58,7 @@ class EditFragment : BaseFragment(), View.OnClickListener {
         greenCurveAllocation = Allocation.createSized(rs, Element.U8(rs), 256)
         blueCurveAllocation = Allocation.createSized(rs, Element.U8(rs), 256)
 
-        script = appComponent.getScriptCurve().apply {
+        curveScript = appComponent.getScriptCurve().apply {
             bind_mapping_r(redCurveAllocation)
             bind_mapping_g(greenCurveAllocation)
             bind_mapping_b(blueCurveAllocation)
@@ -83,11 +83,20 @@ class EditFragment : BaseFragment(), View.OnClickListener {
     }
 
     private fun setupByFuture(imageFuture: FutureTarget<Bitmap>) = GlobalScope.launch {
-        bitmap = imageFuture.get()
+        val srcBitmap = imageFuture.get()
         withUI {
-            loadBitmapIntoImageView()
+            bitmap = srcBitmap
+
+            val size = srcBitmap.width.toLong() * srcBitmap.height.toLong()
+            if(size > 3000L * 4000L) {
+                Timber.i("Image is too big, resizing...")
+                resizeBitmap()
+            }
+
+            ivPreview.setImageBitmap(bitmap)
         }
 
+        Timber.d("Setup allocations")
         inAlloc = Allocation.createFromBitmap(rs, bitmap)
         outAlloc = Allocation.createTyped(rs, inAlloc!!.type)
 
@@ -106,7 +115,9 @@ class EditFragment : BaseFragment(), View.OnClickListener {
 
     private suspend fun handleNotifyChannel() = coroutineScope {
         for(notify in notifyChannel){
-            curveView.fillCurve(curveBuffer)
+            withUI {
+                curveView.fillCurve(curveBuffer)
+            }
 
             redCurveAllocation?.copy1DRangeFrom(0, 256,
                 if(colorState == ColorState.GENERAL || colorState == ColorState.RED)
@@ -126,22 +137,40 @@ class EditFragment : BaseFragment(), View.OnClickListener {
                 else identityCurve
             )
 
-            script?.forEach_apply(inAlloc, outAlloc)
+            curveScript?.forEach_apply(inAlloc, outAlloc)
             outAlloc?.copyTo(bitmap)
 
             withUI {
-                loadBitmapIntoImageView()
+                ivPreview.setImageBitmap(bitmap)
             }
         }
     }
 
-    private fun loadBitmapIntoImageView() {
-        ivPreview.setImageBitmap(bitmap)
-        /*Glide.with(this)
-            .load(bitmap)
-            .diskCacheStrategy(DiskCacheStrategy.NONE)
-            .skipMemoryCache(true)
-            .into(ivPreview)*/
+    private fun resizeBitmap() {
+        val bitmap = bitmap ?: return
+
+        val newWidth = bitmap.width / 2
+        val newHeight = bitmap.height / 2
+
+        val outBitmap = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888)
+        val outAlloc = Allocation.createFromBitmap(rs, outBitmap)
+
+        val inAlloc = Allocation.createFromBitmap(rs, bitmap)
+
+        val resizeScript = ScriptIntrinsicResize.create(rs)
+        resizeScript.apply {
+            setInput(inAlloc)
+            forEach_bicubic(outAlloc)
+        }
+
+        outAlloc.copyTo(outBitmap)
+        this.bitmap = outBitmap
+
+        outAlloc.destroy()
+        inAlloc.destroy()
+        resizeScript.destroy()
+
+        Timber.i("Resizing -- OK, width=$newWidth, height=$newHeight")
     }
 
     override fun onDestroyView() {
@@ -185,5 +214,9 @@ class EditFragment : BaseFragment(), View.OnClickListener {
         RED,
         GREEN,
         BLUE,
+    }
+
+    companion object {
+        private const val RESIZE_FACTOR = 2
     }
 }

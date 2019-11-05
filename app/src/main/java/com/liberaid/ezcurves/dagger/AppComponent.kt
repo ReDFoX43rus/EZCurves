@@ -2,6 +2,7 @@ package com.liberaid.ezcurves.dagger
 
 import android.renderscript.RenderScript
 import com.liberaid.ezcurves.MyApp
+import com.liberaid.renderscripttest.ScriptC_crop
 import com.liberaid.renderscripttest.ScriptC_curve
 import dagger.Component
 import javax.inject.Singleton
@@ -14,5 +15,6 @@ interface AppComponent {
 
     fun getRenderScript(): RenderScript
     fun getScriptCurve(): ScriptC_curve
+    fun getScriptCrop(): ScriptC_crop
 
 }
