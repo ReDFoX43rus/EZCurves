@@ -5,7 +5,6 @@ import android.graphics.*
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
-import android.view.animation.LinearInterpolator
 import com.liberaid.ezcurves.R
 import timber.log.Timber
 import kotlin.math.max
@@ -20,7 +19,7 @@ class CurveView(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
     private var canvasPath = Path()
 
-    private val curveInterpolator = CurveHandler(MixedCurveInterpolator.testInterpolator2())
+    private val curveHandler = CurveHandler(MixedCurveInterpolator.testInterpolator2())
     private val circles = Array(CurveHandler.INIT_POINTS_N - 2) { CurveHandler.CircleInfo() }
 
     init {
@@ -66,7 +65,7 @@ class CurveView(context: Context, attrs: AttributeSet) : View(context, attrs) {
         val step = drawRect.width() / 256
         for(i in 0 until 256){
             val x = drawRect.left + i * step
-            var y = curveInterpolator.getY(x) / drawRect.width() * 255
+            var y = curveHandler.getY(x) / drawRect.width() * 255
 
             if(y < 0f)
                 y = 0f
@@ -91,7 +90,7 @@ class CurveView(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
         drawRect.set(x + paddingStart, y + paddingTop, x + side - paddingEnd, y + side - paddingBottom)
 
-        curveInterpolator.apply {
+        curveHandler.apply {
             oBottom = drawRect.bottom
             oLeft = drawRect.left
             canvasSize = drawRect.width()
@@ -136,7 +135,7 @@ class CurveView(context: Context, attrs: AttributeSet) : View(context, attrs) {
         }
 
         /* Draw path */
-        curveInterpolator.fillCanvasPath(canvasPath)
+        curveHandler.fillCanvasPath(canvasPath)
         canvas.drawPath(canvasPath, paint)
 
         paint.apply {
@@ -145,7 +144,7 @@ class CurveView(context: Context, attrs: AttributeSet) : View(context, attrs) {
         }
 
         /* Draw circles */
-        curveInterpolator.fillCircleArray(circles, circleRadiusDivider.toFloat())
+        curveHandler.fillCircleArray(circles, circleRadiusDivider.toFloat())
         circles.forEach { (x, y, radius) ->
             canvas.drawCircle(x, y, radius, paint)
         }
@@ -158,18 +157,21 @@ class CurveView(context: Context, attrs: AttributeSet) : View(context, attrs) {
         }
 
         when(event.action) {
-            MotionEvent.ACTION_UP -> { curveInterpolator.releasePoint() }
+            MotionEvent.ACTION_UP -> { curveHandler.releasePoint() }
             MotionEvent.ACTION_MOVE -> {
-                if(curveInterpolator.movePoint(event.x, event.y)) {
+                if(curveHandler.movePoint(event.x, event.y)) {
                     invalidate()
                     curveChangedListener?.onCurveChanged()
                 }
             }
-            MotionEvent.ACTION_DOWN -> { curveInterpolator.grabPoint(event.x, event.y) }
+            MotionEvent.ACTION_DOWN -> { curveHandler.grabPoint(event.x, event.y) }
         }
 
         return true
     }
+
+    fun getState() = curveHandler.getState()
+    fun setState(state: List<Pair<Float, Float>>) = curveHandler.setState(state)
 
     interface ICurveChangedListener {
         fun onCurveChanged()

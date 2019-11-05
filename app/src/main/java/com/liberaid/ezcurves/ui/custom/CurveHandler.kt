@@ -165,6 +165,23 @@ class CurveHandler(private val curveInterpolator: ICurveInterpolator) {
             throw AssertionError("Origin coordinates were not set oBottom=$oBottom, oLeft=$oLeft, canvasSize=$canvasSize")
     }
 
+    fun getState(): List<Pair<Float, Float>> = points.map { (x, y) -> x to y }
+
+    fun setState(state: List<Pair<Float, Float>>) {
+        check(state.size == points.size) { "Wrong state size, required: $INIT_POINTS_N" }
+
+        val range = 0f..1f
+        state.forEach { (x, y) ->
+            check(x in range && y in range) { "Points are not in range $range" }
+        }
+
+        state.sortedBy { it.first }
+            .forEachIndexed { i, (x, y) ->
+                points[i].x = x
+                points[i].y = y
+            }
+    }
+
     class CircleInfo(var x: Float = 0f, var y: Float = 0f, var radius: Float = 0f) {
         operator fun component1() = x
         operator fun component2() = y

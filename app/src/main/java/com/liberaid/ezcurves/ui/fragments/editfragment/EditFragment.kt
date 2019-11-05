@@ -1,23 +1,20 @@
 package com.liberaid.ezcurves.ui.fragments.editfragment
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Bundle
 import android.renderscript.*
 import android.view.View
-import android.widget.Toast
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.FutureTarget
 import com.liberaid.ezcurves.MyApp
 import com.liberaid.ezcurves.R
 import com.liberaid.ezcurves.ui.BaseFragment
 import com.liberaid.ezcurves.ui.FragmentId
+import com.liberaid.ezcurves.ui.custom.CurveHandler
 import com.liberaid.ezcurves.ui.custom.CurveView
 import com.liberaid.ezcurves.ui.fragments.selectfragment.SelectFragment
 import com.liberaid.ezcurves.util.withUI
-import com.liberaid.renderscripttest.ScriptC_crop
 import com.liberaid.renderscripttest.ScriptC_curve
 import kotlinx.android.synthetic.main.fragment_edit.*
 import kotlinx.coroutines.*
@@ -43,6 +40,7 @@ class EditFragment : BaseFragment(), View.OnClickListener {
     private var handlerJob: Job? = null
 
     private var colorState = ColorState.GENERAL
+    private val statesPool = arrayOf(ColorState.GENERAL, ColorState.RED, ColorState.GREEN, ColorState.BLUE)
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -74,7 +72,7 @@ class EditFragment : BaseFragment(), View.OnClickListener {
         handlerJob?.cancel()
         handlerJob = setupByFuture(imageFuture)
 
-        setState(ColorState.GENERAL)
+        setState(statesPool[0])
 
         btnGeneralCurve.setOnClickListener(this)
         btnRedCurve.setOnClickListener(this)
@@ -149,8 +147,8 @@ class EditFragment : BaseFragment(), View.OnClickListener {
     private fun resizeBitmap() {
         val bitmap = bitmap ?: return
 
-        val newWidth = bitmap.width / 2
-        val newHeight = bitmap.height / 2
+        val newWidth = bitmap.width / RESIZE_FACTOR
+        val newHeight = bitmap.height / RESIZE_FACTOR
 
         val outBitmap = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888)
         val outAlloc = Allocation.createFromBitmap(rs, outBitmap)
@@ -186,17 +184,23 @@ class EditFragment : BaseFragment(), View.OnClickListener {
         v ?: return
 
         when(v.id) {
-            R.id.btnGeneralCurve -> setState(ColorState.GENERAL)
-            R.id.btnRedCurve -> setState(ColorState.RED)
-            R.id.btnGreenCurve -> setState(ColorState.GREEN)
-            R.id.btnBlueCurve -> setState(ColorState.BLUE)
+            R.id.btnGeneralCurve -> setState(statesPool[0])
+            R.id.btnRedCurve -> setState(statesPool[1])
+            R.id.btnGreenCurve -> setState(statesPool[2])
+            R.id.btnBlueCurve -> setState(statesPool[3])
         }
     }
 
-    private fun setState(state: ColorState) {
-        colorState = state
+    private fun setState(newColorState: ColorState) {
+        colorState.state = curveView.getState()
+        colorState = newColorState
 
-        val color = when(state){
+        val cvState = newColorState.state
+        if(cvState != null)
+            curveView.setState(cvState)
+        else curveView.setState(ColorState.IDENTITY_STATE)
+
+        val color = when(newColorState){
             ColorState.GENERAL -> Color.BLACK
             ColorState.RED -> Color.RED
             ColorState.GREEN -> Color.GREEN
@@ -206,14 +210,23 @@ class EditFragment : BaseFragment(), View.OnClickListener {
         curveView.curveColor = color
         curveView.circleColor = color
 
-        Timber.d("New state: $state")
+        Timber.d("New newColorState: $newColorState")
     }
 
     private enum class ColorState {
         GENERAL,
         RED,
         GREEN,
-        BLUE,
+        BLUE;
+
+        var state: List<Pair<Float, Float>>? = null
+
+        companion object {
+            val IDENTITY_STATE = Array(CurveHandler.INIT_POINTS_N) {
+                val step = 1f / (CurveHandler.INIT_POINTS_N - 1)
+                Pair(it * step, it * step)
+            }.toList()
+        }
     }
 
     companion object {
