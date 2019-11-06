@@ -14,14 +14,52 @@
         app:layout_constraintEnd_toEndOf="parent"/>
 
     <com.liberaid.ezcurves.ui.custom.CurveView
-        android:id="@+id/curveView"
+        android:id="@+id/curveGeneral"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:padding="4dp"
         app:layout_constraintTop_toBottomOf="@id/ivPreview"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@id/btnGeneralCurve"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:curveColor="#000"
+        app:circleColor="#000"/>
+
+    <com.liberaid.ezcurves.ui.custom.CurveView
+        android:id="@+id/curveRed"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:padding="4dp"
+        app:layout_constraintTop_toTopOf="@id/curveGeneral"
+        app:layout_constraintStart_toStartOf="@id/curveGeneral"
+        app:layout_constraintEnd_toEndOf="@id/curveGeneral"
+        app:layout_constraintBottom_toBottomOf="@id/curveGeneral"
+        app:curveColor="#F00"
+        app:circleColor="#F00"/>
+
+    <com.liberaid.ezcurves.ui.custom.CurveView
+        android:id="@+id/curveGreen"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:padding="4dp"
+        app:layout_constraintTop_toTopOf="@id/curveGeneral"
+        app:layout_constraintStart_toStartOf="@id/curveGeneral"
+        app:layout_constraintEnd_toEndOf="@id/curveGeneral"
+        app:layout_constraintBottom_toBottomOf="@id/curveGeneral"
+        app:curveColor="#0F0"
+        app:circleColor="#0F0"/>
+
+    <com.liberaid.ezcurves.ui.custom.CurveView
+        android:id="@+id/curveBlue"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:padding="4dp"
+        app:layout_constraintTop_toTopOf="@id/curveGeneral"
+        app:layout_constraintStart_toStartOf="@id/curveGeneral"
+        app:layout_constraintEnd_toEndOf="@id/curveGeneral"
+        app:layout_constraintBottom_toBottomOf="@id/curveGeneral"
+        app:curveColor="#00F"
+        app:circleColor="#00F"/>
 
     <ImageButton
         android:id="@+id/btnGeneralCurve"

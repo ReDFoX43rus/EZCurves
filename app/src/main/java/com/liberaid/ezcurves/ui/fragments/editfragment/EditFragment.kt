@@ -20,6 +20,7 @@ import kotlinx.android.synthetic.main.fragment_edit.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import timber.log.Timber
+import java.util.*
 
 class EditFragment : BaseFragment(), View.OnClickListener {
     override val fragmentId = FragmentId.EDIT_FRAGMENT
@@ -27,6 +28,7 @@ class EditFragment : BaseFragment(), View.OnClickListener {
     private var bitmap: Bitmap? = null
     private var rs: RenderScript? = null
     private var inAlloc: Allocation? = null
+    private var tmpAlloc: Allocation? = null
     private var outAlloc: Allocation? = null
     private var curveScript: ScriptC_curve? = null
     private var redCurveAllocation: Allocation? = null
@@ -40,7 +42,6 @@ class EditFragment : BaseFragment(), View.OnClickListener {
     private var handlerJob: Job? = null
 
     private var colorState = ColorState.GENERAL
-    private val statesPool = arrayOf(ColorState.GENERAL, ColorState.RED, ColorState.GREEN, ColorState.BLUE)
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -72,7 +73,7 @@ class EditFragment : BaseFragment(), View.OnClickListener {
         handlerJob?.cancel()
         handlerJob = setupByFuture(imageFuture)
 
-        setState(statesPool[0])
+        setState(ColorState.GENERAL)
 
         btnGeneralCurve.setOnClickListener(this)
         btnRedCurve.setOnClickListener(this)
@@ -96,46 +97,51 @@ class EditFragment : BaseFragment(), View.OnClickListener {
 
         Timber.d("Setup allocations")
         inAlloc = Allocation.createFromBitmap(rs, bitmap)
+        tmpAlloc = Allocation.createTyped(rs, inAlloc!!.type)
         outAlloc = Allocation.createTyped(rs, inAlloc!!.type)
 
         launch { handleNotifyChannel() }
 
         withUI {
-            curveView.curveChangedListener = object : CurveView.ICurveChangedListener {
+            val changeListener = object : CurveView.ICurveChangedListener {
                 override fun onCurveChanged() {
                     runBlocking {
                         notifyChannel.send(Unit)
                     }
                 }
             }
+
+            curveGeneral.curveChangedListener = changeListener
+            curveRed.curveChangedListener = changeListener
+            curveGreen.curveChangedListener = changeListener
+            curveBlue.curveChangedListener = changeListener
         }
     }
 
     private suspend fun handleNotifyChannel() = coroutineScope {
         for(notify in notifyChannel){
             withUI {
-                curveView.fillCurve(curveBuffer)
+                curveGeneral.fillCurve(curveBuffer)
             }
 
-            redCurveAllocation?.copy1DRangeFrom(0, 256,
-                if(colorState == ColorState.GENERAL || colorState == ColorState.RED)
-                    curveBuffer
-                else identityCurve
-            )
+            /* Proceed general curve */
+            redCurveAllocation?.copy1DRangeFrom(0, 256, curveBuffer)
+            greenCurveAllocation?.copy1DRangeFrom(0, 256, curveBuffer)
+            blueCurveAllocation?.copy1DRangeFrom(0, 256, curveBuffer)
 
-            greenCurveAllocation?.copy1DRangeFrom(0, 256,
-                if(colorState == ColorState.GENERAL || colorState == ColorState.GREEN)
-                    curveBuffer
-                else identityCurve
-            )
+            curveScript?.forEach_apply(inAlloc, tmpAlloc)
 
-            blueCurveAllocation?.copy1DRangeFrom(0, 256,
-                if(colorState == ColorState.GENERAL || colorState == ColorState.BLUE)
-                    curveBuffer
-                else identityCurve
-            )
+            /* Proceed colored curves */
+            withUI { curveRed.fillCurve(curveBuffer) }
+            redCurveAllocation?.copy1DRangeFrom(0, 256, curveBuffer)
 
-            curveScript?.forEach_apply(inAlloc, outAlloc)
+            withUI { curveGreen.fillCurve(curveBuffer) }
+            greenCurveAllocation?.copy1DRangeFrom(0, 256, curveBuffer)
+
+            withUI { curveBlue.fillCurve(curveBuffer) }
+            blueCurveAllocation?.copy1DRangeFrom(0, 256, curveBuffer)
+
+            curveScript?.forEach_apply(tmpAlloc, outAlloc)
             outAlloc?.copyTo(bitmap)
 
             withUI {
@@ -172,6 +178,15 @@ class EditFragment : BaseFragment(), View.OnClickListener {
     }
 
     override fun onDestroyView() {
+        inAlloc?.destroy()
+        tmpAlloc?.destroy()
+        outAlloc?.destroy()
+        redCurveAllocation?.destroy()
+        greenCurveAllocation?.destroy()
+        blueCurveAllocation?.destroy()
+
+        notifyChannel.close()
+
         handlerJob?.cancel()
         handlerJob = null
 
@@ -184,31 +199,29 @@ class EditFragment : BaseFragment(), View.OnClickListener {
         v ?: return
 
         when(v.id) {
-            R.id.btnGeneralCurve -> setState(statesPool[0])
-            R.id.btnRedCurve -> setState(statesPool[1])
-            R.id.btnGreenCurve -> setState(statesPool[2])
-            R.id.btnBlueCurve -> setState(statesPool[3])
+            R.id.btnGeneralCurve -> setState(ColorState.GENERAL)
+            R.id.btnRedCurve -> setState(ColorState.RED)
+            R.id.btnGreenCurve -> setState(ColorState.GREEN)
+            R.id.btnBlueCurve -> setState(ColorState.BLUE)
         }
     }
 
     private fun setState(newColorState: ColorState) {
-        colorState.state = curveView.getState()
         colorState = newColorState
 
-        val cvState = newColorState.state
-        if(cvState != null)
-            curveView.setState(cvState)
-        else curveView.setState(ColorState.IDENTITY_STATE)
+        curveGeneral.visibility = View.INVISIBLE
+        curveRed.visibility = View.INVISIBLE
+        curveGreen.visibility = View.INVISIBLE
+        curveBlue.visibility = View.INVISIBLE
 
-        val color = when(newColorState){
-            ColorState.GENERAL -> Color.BLACK
-            ColorState.RED -> Color.RED
-            ColorState.GREEN -> Color.GREEN
-            ColorState.BLUE -> Color.BLUE
+        val visibleCurve = when(newColorState) {
+            ColorState.GENERAL -> curveGeneral
+            ColorState.RED -> curveRed
+            ColorState.GREEN -> curveGreen
+            ColorState.BLUE -> curveBlue
         }
 
-        curveView.curveColor = color
-        curveView.circleColor = color
+        visibleCurve.visibility = View.VISIBLE
 
         Timber.d("New newColorState: $newColorState")
     }
@@ -218,15 +231,6 @@ class EditFragment : BaseFragment(), View.OnClickListener {
         RED,
         GREEN,
         BLUE;
-
-        var state: List<Pair<Float, Float>>? = null
-
-        companion object {
-            val IDENTITY_STATE = Array(CurveHandler.INIT_POINTS_N) {
-                val step = 1f / (CurveHandler.INIT_POINTS_N - 1)
-                Pair(it * step, it * step)
-            }.toList()
-        }
     }
 
     companion object {
